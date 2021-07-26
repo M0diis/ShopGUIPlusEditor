@@ -5,6 +5,7 @@ import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.HashMap;
 import java.util.List;
 
 public class Config
@@ -19,11 +20,19 @@ public class Config
         this.load(plugin);
     }
     
+    HashMap<Messages, String> messages;
+    
     private String priceEditTitle;
+    private String savedPricesMessage, noPermissionMessage;
     
     public String getPriceEditTitle()
     {
         return this.priceEditTitle;
+    }
+    
+    public String getSavedPricesMessage()
+    {
+        return this.savedPricesMessage;
     }
     
     private ItemStack buyPriceButton;
@@ -50,6 +59,8 @@ public class Config
     {
         this.cfg = plugin.getConfig();
         
+        this.messages = new HashMap<>();
+        
         this.priceEditTitle = getStr("edit-menu.title");
         
         List<String> buyPriceButtonLore = cfg.getStringList("edit-menu.buy-price-button.lore");
@@ -72,9 +83,16 @@ public class Config
         this.sellPriceButton = Utils.createItem(sellPriceButtonMat, sellPriceButtonName, sellPriceButtonLore);
         
         this.fillItem = Utils.createItem(fillItemMat, fillItemName, fillItemLore);
+        
+        messages.put(Messages.SET_PRICES, getStr("messages.successfully-set"));
+        messages.put(Messages.NO_PERMISSION, getStr("messages.no-permission"));
+        messages.put(Messages.RELOADED, getStr("messages.reloaded"));
     }
     
-    
+    public HashMap<Messages, String> getMessages()
+    {
+        return this.messages;
+    }
     private String getStr(String path)
     {
         return Utils.format(this.cfg.getString(path, ""));

@@ -1,11 +1,18 @@
 name: ShopGUIPlusEditor
 main: me.M0dii.ShopGUIPlusEditor.ShopGUIPlusEditor
 description: ShopGUIPlusEditor
-version: 1.0
+version: 1.1.0
 api-version: 1.13
 author: M0dii
 softdepend: [ShopGUIPlus]
+commands:
+  shopguipluseditor:
+    description: Main command.
+    aliases: [sgpe, sge, shopguieditor]
 permissions:
   shopguipluseditor.use:
     description: Permission to use the editor.
+    default: op
+  shopguipluseditor.command.reload:
+    description: Permission to reload the config.
     default: op

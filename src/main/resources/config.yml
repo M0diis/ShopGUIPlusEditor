@@ -17,7 +17,7 @@ edit-menu:
 
   sell-price-button:
     material: "PAPER"
-    name: "&cSel price"
+    name: "&cSell price"
     lore:
       - "&8» &aCurrent sell price: &2%current_sell_price%"
       - "&8» &aNew sell price: &2%new_sell_price%"
@@ -26,3 +26,5 @@ edit-menu:
 
 messages:
   successfully-set: "&2Successfully updated the new price."
+  no-permission: "&cYou do not have permission to do that."
+  reloaded: "&aSuccessfully reloaded the config."

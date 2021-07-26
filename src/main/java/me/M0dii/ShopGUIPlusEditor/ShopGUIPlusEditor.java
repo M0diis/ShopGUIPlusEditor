@@ -1,5 +1,6 @@
 package me.M0dii.ShopGUIPlusEditor;
 
+import me.M0dii.ShopGUIPlusEditor.Utils.Commands;
 import me.M0dii.ShopGUIPlusEditor.Utils.UpdateChecker;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.CustomChart;
@@ -10,10 +11,7 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import me.M0dii.ShopGUIPlusEditor.Utils.Config;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,9 +38,13 @@ public class ShopGUIPlusEditor extends JavaPlugin
         this.cfg = new Config();
         this.cfg.load(this);
         
+
+        
         this.manager = getServer().getPluginManager();
         
         this.manager.registerEvents(new ClickListener(), this);
+        
+        getCommand("shopguipluseditor").setExecutor(new Commands(this));
         
         prepareConfig();
         
@@ -97,6 +99,7 @@ public class ShopGUIPlusEditor extends JavaPlugin
     {
         File configFile = new File(this.getDataFolder(), "config.yml");
         
+        
         if(!configFile.exists())
         {
             //noinspection ResultOfMethodCallIgnored
@@ -104,7 +107,18 @@ public class ShopGUIPlusEditor extends JavaPlugin
             
             this.copy(this.getResource("config.yml"), configFile);
         }
+    
+        getConfig().options().copyDefaults(true);
         
+        try
+        {
+            getConfig().save(configFile);
+        }
+        catch(IOException ex)
+        {
+            ex.printStackTrace();
+        }
+    
         YamlConfiguration.loadConfiguration(configFile);
     }
     
