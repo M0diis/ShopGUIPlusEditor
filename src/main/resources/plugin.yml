@@ -1,0 +1,11 @@
+name: ShopGUIPlusEditor
+main: me.M0dii.ShopGUIPlusEditor.ShopGUIPlusEditor
+description: ShopGUIPlusEditor
+version: 1.0
+api-version: 1.13
+author: M0dii
+softdepend: [ShopGUIPlus]
+permissions:
+  shopguipluseditor.use:
+    description: Permission to use the editor.
+    default: op
