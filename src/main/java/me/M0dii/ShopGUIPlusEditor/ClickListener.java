@@ -6,6 +6,7 @@ import net.brcdev.shopgui.inventory.ShopInventoryHolder;
 import net.brcdev.shopgui.shop.ShopItem;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.HumanEntity;
@@ -17,18 +18,30 @@ import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.io.File;
 import java.io.IOException;
 
 public class ClickListener implements Listener
 {
-    private final File plugins = ShopGUIPlusEditor.instance.getDataFolder().getParentFile();
-    
     private final String sep = File.separator;
     
-    private final File splus = new File(plugins.getAbsolutePath() +
-            sep + "ShopGUIPlus" + sep + "shops");
+    private final File splus;
+    
+    private final ShopGUIPlusEditor plugin;
+    
+    public ClickListener(ShopGUIPlusEditor plugin)
+    {
+        this.plugin = plugin;
+    
+        File plugins = plugin.getDataFolder().getParentFile();
+        
+        splus = new File(plugins.getAbsolutePath() +
+                sep + "ShopGUIPlus" + sep + "shops");
+    }
     
     @EventHandler
     public void onMoveItem(InventoryMoveItemEvent e)
@@ -78,24 +91,41 @@ public class ClickListener implements Listener
                 {
                     int multiplier = e.isShiftClick() ? 2 : 1;
     
-                    if(clicked.getType().equals(Material.LIME_CONCRETE))
-                    {
-                        if(clicked.getAmount() == 1)
-                            se.adjustBuyPrice(0.1 * multiplier, e.isRightClick());
-                        if(clicked.getAmount() == 2)
-                            se.adjustBuyPrice(1 * multiplier, e.isRightClick());
-                        if(clicked.getAmount() == 3)
-                            se.adjustBuyPrice(10 * multiplier, e.isRightClick());
-                    }
+                    ItemMeta itemMeta = clicked.getItemMeta();
     
-                    if(clicked.getType().equals(Material.RED_CONCRETE))
+                    PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
+    
+                    NamespacedKey typeKey = new NamespacedKey(this.plugin, "type");
+                    
+                    if(pdc.has(typeKey, PersistentDataType.STRING))
                     {
-                        if(clicked.getAmount() == 1)
-                            se.adjustSellPrice(0.1 * multiplier, e.isRightClick());
-                        if(clicked.getAmount() == 2)
-                            se.adjustSellPrice(1 * multiplier, e.isRightClick());
-                        if(clicked.getAmount() == 3)
-                            se.adjustSellPrice(10 * multiplier, e.isRightClick());
+                        String type = pdc.get(typeKey, PersistentDataType.STRING);
+                        
+                        if(type.equalsIgnoreCase("sell"))
+                        {
+                            NamespacedKey amountKey =
+                                    new NamespacedKey(this.plugin, "amount");
+    
+                            if(pdc.has(amountKey, PersistentDataType.DOUBLE))
+                            {
+                                double amount = pdc.get(amountKey, PersistentDataType.DOUBLE);
+    
+                                se.adjustSellPrice(amount, e.isRightClick());
+                            }
+                        }
+    
+                        if(type.equalsIgnoreCase("buy"))
+                        {
+                            NamespacedKey amountKey =
+                                    new NamespacedKey(ShopGUIPlusEditor.instance, "amount");
+    
+                            if(pdc.has(amountKey, PersistentDataType.DOUBLE))
+                            {
+                                double amount = pdc.get(amountKey, PersistentDataType.DOUBLE);
+        
+                                se.adjustBuyPrice(amount * multiplier, e.isRightClick());
+                            }
+                        }
                     }
                     
                     if(clicked.getType().equals(Material.BARRIER))
@@ -110,29 +140,31 @@ public class ClickListener implements Listener
                             ex.printStackTrace();
                         }
                     }
-    
-                    if(clicked.getType().equals(Material.PAPER))
-                    {
-                        String shop = shopItem.getShop().getId();
-    
-                        File cfgFile = new File(splus + sep + shop + ".yml");
+                    
+                    String shop = shopItem.getShop().getId();
 
-                        if(e.getSlot() == 20)
-                        {
-                            shopItem.setBuyPrice(se.getNewBuyPrice());
+                    File cfgFile = new File(splus + sep + shop + ".yml");
+
+                    if(e.getSlot() == 20)
+                    {
+                        shopItem.setBuyPrice(se.getNewBuyPrice());
+
+                        setAndSave(cfgFile, String.format("%s.items.%s.buyPrice", shop, shopItem.getId()), se.getNewBuyPrice());
     
-                            setAndSave(cfgFile, String.format("%s.items.%s.buyPrice", shop, shopItem.getId()), se.getNewBuyPrice());
-                        }
-                        else
-                        {
-                            shopItem.setSellPrice(se.getNewSellPrice());
-    
-                            setAndSave(cfgFile, String.format("%s.items.%s.sellPrice", shop, shopItem.getId()), se.getNewSellPrice());
-                        }
-                        
                         clicker.sendMessage(ChatColor.translateAlternateColorCodes(
                                 '&', "&aSuccessfully updated the item price."));
-                        
+    
+                        clicker.openInventory(new ShopEditGUI(shopItem).getInventory());
+                    }
+                    else if(e.getSlot() == 24)
+                    {
+                        shopItem.setSellPrice(se.getNewSellPrice());
+
+                        setAndSave(cfgFile, String.format("%s.items.%s.sellPrice", shop, shopItem.getId()), se.getNewSellPrice());
+    
+                        clicker.sendMessage(ChatColor.translateAlternateColorCodes(
+                                '&', "&aSuccessfully updated the item price."));
+    
                         clicker.openInventory(new ShopEditGUI(shopItem).getInventory());
                     }
                 }

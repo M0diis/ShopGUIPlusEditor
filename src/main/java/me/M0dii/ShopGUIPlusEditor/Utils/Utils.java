@@ -20,8 +20,6 @@ public class Utils
                 .replace("%new_buy_price%", String.valueOf(gui.getNewBuyPrice()))
                 .replace("%current_sell_price%", String.valueOf(item.getSellPrice()))
                 .replace("%new_sell_price%", String.valueOf(gui.getNewSellPrice()));
-    
-        ShopGUIPlusEditor.instance.getLogger().info(text);
         
         return format(text);
     }

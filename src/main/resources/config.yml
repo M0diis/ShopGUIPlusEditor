@@ -24,6 +24,70 @@ edit-menu:
       - ""
       - "&7Click to set the new price."
 
+  sell-price-adjust-buttons:
+    button-1:
+      size: 1
+      name: '&2$%amount%'
+      amount: '0.1'
+      material: 'RED_CONCRETE'
+      lore:
+        - '&8» &aLeft click to add %amount%'
+        - '&8» &aRight click to subtract %amount%'
+        - ''
+        - '&7Shift-click to multiply by 2'
+    button-2:
+      size: 2
+      name: '&2$%amount%'
+      amount: '1'
+      material: 'RED_CONCRETE'
+      lore:
+        - '&8» &aLeft click to add %amount%'
+        - '&8» &aRight click to subtract %amount%'
+        - ''
+        - '&7Shift-click to multiply by 2'
+    button-3:
+      size: 3
+      name: '&2$%amount%'
+      amount: '10'
+      material: 'RED_CONCRETE'
+      lore:
+        - '&8» &aLeft click to add %amount%'
+        - '&8» &aRight click to subtract %amount%'
+        - ''
+        - '&7Shift-click to multiply by 2'
+
+  buy-price-adjust-buttons:
+    button-1:
+      size: 1
+      name: '&2$%amount%'
+      amount: '0.1'
+      material: 'LIME_CONCRETE'
+      lore:
+        - '&8» &aLeft click to add %amount%'
+        - '&8» &aRight click to subtract %amount%'
+        - ''
+        - '&7Shift-click to multiply by 2'
+    button-2:
+      size: 2
+      name: '&2$%amount%'
+      amount: '1'
+      material: 'LIME_CONCRETE'
+      lore:
+        - '&8» &aLeft click to add %amount%'
+        - '&8» &aRight click to subtract %amount%'
+        - ''
+        - '&7Shift-click to multiply by 2'
+    button-3:
+      size: 3
+      name: '&2$%amount%'
+      amount: '10'
+      material: 'LIME_CONCRETE'
+      lore:
+        - '&8» &aLeft click to add %amount%'
+        - '&8» &aRight click to subtract %amount%'
+        - ''
+        - '&7Shift-click to multiply by 2'
+
 messages:
   successfully-set: "&2Successfully updated the new price."
   no-permission: "&cYou do not have permission to do that."

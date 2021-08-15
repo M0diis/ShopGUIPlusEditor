@@ -26,7 +26,7 @@ public class ShopGUIPlusEditor extends JavaPlugin
     public Config getCfg()
     {
         if(cfg == null)
-            cfg = new Config();
+            cfg = new Config(this);
         
         return this.cfg;
     }
@@ -35,14 +35,14 @@ public class ShopGUIPlusEditor extends JavaPlugin
     {
         instance = this;
     
-        this.cfg = new Config();
+        this.cfg = new Config(this);
         this.cfg.load(this);
         
 
         
         this.manager = getServer().getPluginManager();
         
-        this.manager.registerEvents(new ClickListener(), this);
+        this.manager.registerEvents(new ClickListener(this), this);
         
         getCommand("shopguipluseditor").setExecutor(new Commands(this));
         
@@ -63,7 +63,7 @@ public class ShopGUIPlusEditor extends JavaPlugin
             if (!curr.equalsIgnoreCase(
                     ver.replace("v", "")))
             {
-                getLogger().info("You are running an outdated version of M0-CoreCord.");
+                getLogger().info("You are running an outdated version of ShopGUIPlusEditor.");
                 getLogger().info("Latest version: " + ver + ", you are using: " + curr);
                 getLogger().info("You can download the latest version on Spigot:");
                 getLogger().info("https://www.spigotmc.org/resources/94668/");

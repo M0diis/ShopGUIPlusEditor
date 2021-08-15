@@ -1,22 +1,39 @@
 package me.M0dii.ShopGUIPlusEditor.Utils;
 
 import me.M0dii.ShopGUIPlusEditor.ShopGUIPlusEditor;
+import net.brcdev.shopgui.ShopGuiPlusApi;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Commands implements CommandExecutor, TabCompleter
 {
+    private final File splus;
+    
     ShopGUIPlusEditor plugin;
+    String sep = File.separator;
+    
+    Config cfg;
     
     public Commands(ShopGUIPlusEditor plugin)
     {
         this.plugin = plugin;
+        
+        splus = new File(plugin.getDataFolder().getParentFile().getAbsolutePath()
+                + sep + "ShopGUIPlus" + sep + "shops");
+        
+        this.cfg = plugin.getCfg();
     }
     
     @Override
@@ -29,7 +46,7 @@ public class Commands implements CommandExecutor, TabCompleter
             {
                 if(!sender.hasPermission("shopguipluseditor.command.reload"))
                 {
-                    String msg = plugin.getCfg().getMessages().get(Messages.NO_PERMISSION);
+                    String msg = cfg.getMessages().get(Messages.NO_PERMISSION);
                     
                     sender.sendMessage(msg);
                     
@@ -38,10 +55,63 @@ public class Commands implements CommandExecutor, TabCompleter
                 
                 plugin.getCfg().reload(this.plugin);
                 
-                String msg = plugin.getCfg().getMessages().get(Messages.RELOADED);
+                String msg = cfg.getMessages().get(Messages.RELOADED);
                 
                 sender.sendMessage(msg);
             }
+        }
+        
+        if(sender instanceof Player)
+        {
+            Player p = (Player)sender;
+            
+//            if(args.length > 1)
+//            {
+//                if(args[0].equalsIgnoreCase("add"))
+//                {
+//                    if(!p.hasPermission("shopguipluseditor.command.add"))
+//                    {
+//                        String msg = cfg.getMessages().get(Messages.NO_PERMISSION);
+//
+//                        p.sendMessage(msg);
+//
+//                        return true;
+//                    }
+//
+//                    ItemStack inHand = p.getInventory().getItemInMainHand();
+//
+//                    if(inHand.getType() != Material.AIR)
+//                    {
+//                        if(args[1].equalsIgnoreCase("item"))
+//                        {
+//                            String shopname = args[2];
+//
+//                            String page = args[3];
+//                            String slot = args[4];
+//
+//                            double buyPrice = Double.parseDouble(args[5]);
+//
+//                            double sellPrice = -1;
+//
+//                            if(args.length == 7)
+//                                sellPrice = Double.parseDouble(args[6]);
+//
+////                            ShopGuiPlusApi.getShop()
+////
+////                            FileConfiguration cfg = YamlConfiguration
+////                                    .loadConfiguration(splus.getAbsolutePath() + sep + shopname);
+////
+//
+//
+//
+//                        }
+//
+//
+//
+//
+//                    }
+//                }
+//            }
         }
         
         return true;
@@ -55,6 +125,15 @@ public class Commands implements CommandExecutor, TabCompleter
         if(args.length == 1)
         {
             completes.add("reload");
+            
+            completes.add("add");
+        }
+        
+        if(args.length == 2)
+        {
+            completes.add("item");
+            completes.add("command");
+            completes.add("permission");
         }
         
         

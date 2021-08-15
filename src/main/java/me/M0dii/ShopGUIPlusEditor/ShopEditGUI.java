@@ -65,21 +65,23 @@ public class ShopEditGUI implements InventoryHolder
         ItemStack sellPriceButton = new ItemStack(cfg.getSellPriceButton());
         
         inv.setItem(24, updateLore(sellPriceButton));
+    
+        ItemStack buy1 = ShopGUIPlusEditor.instance.getCfg().getAdjustButton("buy", 1);
+        ItemStack buy2 = ShopGUIPlusEditor.instance.getCfg().getAdjustButton("buy", 2);
+        ItemStack buy3 = ShopGUIPlusEditor.instance.getCfg().getAdjustButton("buy", 3);
+    
+        inv.setItem(37, buy1);
+        inv.setItem(38, buy2);
+        inv.setItem(39, buy3);
+    
+        ItemStack sell1 = ShopGUIPlusEditor.instance.getCfg().getAdjustButton("sell", 1);
+        ItemStack sell2 = ShopGUIPlusEditor.instance.getCfg().getAdjustButton("sell", 2);
+        ItemStack sell3 = ShopGUIPlusEditor.instance.getCfg().getAdjustButton("sell", 3);
+    
+        inv.setItem(41, sell3);
+        inv.setItem(42, sell2);
+        inv.setItem(43, sell1);
         
-        List<String> editLore = new ArrayList<>();
-        editLore.add(format("&8» &aLeft click to add."));
-        editLore.add(format("&8» &aRight click to subtract."));
-        editLore.add("");
-        editLore.add(format("&7Shift-click to multiply by 2"));
-    
-        Utils.createItem(Material.LIME_CONCRETE, 1, "&a$0.1", editLore, 37, inv);
-        Utils.createItem(Material.LIME_CONCRETE, 2, "&a$1", editLore, 38, inv);
-        Utils.createItem(Material.LIME_CONCRETE, 3, "&a$10", editLore, 39, inv);
-    
-        Utils.createItem(Material.RED_CONCRETE, 3, "&c$10", editLore, 41, inv);
-        Utils.createItem(Material.RED_CONCRETE, 2, "&c$1", editLore, 42, inv);
-        Utils.createItem(Material.RED_CONCRETE, 1, "&c$0.1", editLore, 43, inv);
-    
         Utils.createItem(Material.BARRIER, 1, "&8» &aGo back", new ArrayList<>(), 4, inv);
     
         fill();
