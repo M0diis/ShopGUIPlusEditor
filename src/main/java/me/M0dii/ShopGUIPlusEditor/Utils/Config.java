@@ -76,10 +76,14 @@ public class Config
         {
             String am = sec.getString("amount", "0");
             
-            if(am == null)
+            if(am == null || am.isEmpty())
                 am = "1";
             
+            
+            
             double amount = Double.parseDouble(am);
+            
+            int multiplier  = sec.getInt("multiplier", 2);
             
             String name = Utils.format(sec.getString("name"))
                     .replaceAll("%amount%", String.valueOf(amount));
@@ -118,6 +122,10 @@ public class Config
             meta.getPersistentDataContainer()
                     .set(new NamespacedKey(this.plugin, "type"),
                             PersistentDataType.STRING, sp);
+            
+            meta.getPersistentDataContainer()
+                    .set(new NamespacedKey(this.plugin, "shift-multiplier"),
+                            PersistentDataType.INTEGER, multiplier);
             
             meta.setDisplayName(name);
             

@@ -29,6 +29,7 @@ edit-menu:
       size: 1
       name: '&2$%amount%'
       amount: '0.1'
+      shift-multiplier: 2
       material: 'RED_CONCRETE'
       lore:
         - '&8» &aLeft click to add %amount%'
@@ -39,6 +40,7 @@ edit-menu:
       size: 2
       name: '&2$%amount%'
       amount: '1'
+      shift-multiplier: 2
       material: 'RED_CONCRETE'
       lore:
         - '&8» &aLeft click to add %amount%'
@@ -49,6 +51,7 @@ edit-menu:
       size: 3
       name: '&2$%amount%'
       amount: '10'
+      shift-multiplier: 2
       material: 'RED_CONCRETE'
       lore:
         - '&8» &aLeft click to add %amount%'
@@ -61,6 +64,7 @@ edit-menu:
       size: 1
       name: '&2$%amount%'
       amount: '0.1'
+      shift-multiplier: 2
       material: 'LIME_CONCRETE'
       lore:
         - '&8» &aLeft click to add %amount%'
@@ -71,6 +75,7 @@ edit-menu:
       size: 2
       name: '&2$%amount%'
       amount: '1'
+      shift-multiplier: 2
       material: 'LIME_CONCRETE'
       lore:
         - '&8» &aLeft click to add %amount%'
@@ -81,6 +86,7 @@ edit-menu:
       size: 3
       name: '&2$%amount%'
       amount: '10'
+      shift-multiplier: 2
       material: 'LIME_CONCRETE'
       lore:
         - '&8» &aLeft click to add %amount%'

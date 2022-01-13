@@ -89,22 +89,28 @@ public class ClickListener implements Listener
                 
                 if(clicked != null)
                 {
-                    int multiplier = e.isShiftClick() ? 2 : 1;
-    
                     ItemMeta itemMeta = clicked.getItemMeta();
     
                     PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
     
                     NamespacedKey typeKey = new NamespacedKey(this.plugin, "type");
+    
+                    int multiplier = 1;
                     
+                    NamespacedKey multiplierKey = new NamespacedKey(this.plugin, "shift-multiplier");
+                    
+                    if(pdc.has(multiplierKey, PersistentDataType.INTEGER) && e.isShiftClick())
+                    {
+                        multiplier = pdc.get(multiplierKey, PersistentDataType.INTEGER);
+                    }
+    
                     if(pdc.has(typeKey, PersistentDataType.STRING))
                     {
                         String type = pdc.get(typeKey, PersistentDataType.STRING);
                         
                         if(type.equalsIgnoreCase("sell"))
                         {
-                            NamespacedKey amountKey =
-                                    new NamespacedKey(this.plugin, "amount");
+                            NamespacedKey amountKey = new NamespacedKey(this.plugin, "amount");
     
                             if(pdc.has(amountKey, PersistentDataType.DOUBLE))
                             {
@@ -116,9 +122,8 @@ public class ClickListener implements Listener
     
                         if(type.equalsIgnoreCase("buy"))
                         {
-                            NamespacedKey amountKey =
-                                    new NamespacedKey(ShopGUIPlusEditor.instance, "amount");
-    
+                            NamespacedKey amountKey = new NamespacedKey(this.plugin, "amount");
+
                             if(pdc.has(amountKey, PersistentDataType.DOUBLE))
                             {
                                 double amount = pdc.get(amountKey, PersistentDataType.DOUBLE);
@@ -179,6 +184,7 @@ public class ClickListener implements Listener
                 {
                     ItemStack clicked = e.getCurrentItem();
                     ShopItem shopItem = ShopGuiPlusApi.getItemStackShopItem(clicked);
+                    
                     ShopEditGUI shopEditGUI = new ShopEditGUI(shopItem);
                     
                     shopEditGUI.display(e.getWhoClicked());
