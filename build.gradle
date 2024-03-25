@@ -1,11 +1,10 @@
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '6.1.0'
+    id 'com.github.johnrengelman.shadow' version '7.0.0'
 }
 
 group 'me.M0dii'
-version '1.2.2'
-sourceCompatibility = '8'
+version '1.3.0'
 
 shadowJar {
     relocate 'org.bstats', 'me.M0dii.ShopGUIPlusEditor'
@@ -31,11 +30,7 @@ repositories {
     }
 
     maven {
-        url 'https://papermc.io/repo/repository/maven-public/'
-    }
-
-    maven {
-        url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
+        url "https://repo.papermc.io/repository/maven-public/"
     }
 
     maven {
@@ -44,13 +39,16 @@ repositories {
 }
 
 dependencies {
-    compileOnly 'com.destroystokyo.paper:paper-api:1.16.4-R0.1-SNAPSHOT'
-    compileOnly 'org.spigotmc:spigot-api:1.16.4-R0.1-SNAPSHOT'
+    compileOnly 'io.papermc.paper:paper-api:1.20.2-R0.1-SNAPSHOT'
 
-    compileOnly 'com.github.brcdev-minecraft:shopgui-api:2.1.1'
-    compileOnly name: 'ShopGUIPlus-1.55.0'
+    compileOnly 'com.github.brcdev-minecraft:shopgui-api:3.0.0'
+    compileOnly name: 'ShopGUIPlus-1.92.0'
 
     implementation "org.bstats:bstats-bukkit:2.2.1"
+}
+
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }
 
 compileJava.options.encoding = 'UTF-8'

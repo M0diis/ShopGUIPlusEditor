@@ -1,6 +1,6 @@
-package me.M0dii.ShopGUIPlusEditor.Utils;
+package me.m0dii.shopguipluseditor.utils;
 
-import me.M0dii.ShopGUIPlusEditor.ShopGUIPlusEditor;
+import me.m0dii.shopguipluseditor.ShopGUIPlusEditor;
 import org.bukkit.Bukkit;
 import org.bukkit.util.Consumer;
 
@@ -9,32 +9,26 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.Scanner;
 
-public class UpdateChecker
-{
+public class UpdateChecker {
     private final ShopGUIPlusEditor plugin;
     private final int resourceId;
-    
-    public UpdateChecker(ShopGUIPlusEditor plugin, int resourceId)
-    {
+
+    public UpdateChecker(ShopGUIPlusEditor plugin, int resourceId) {
         this.plugin = plugin;
         this.resourceId = resourceId;
     }
-    
-    public void getVersion(final Consumer<String> consumer)
-    {
+
+    public void getVersion(final Consumer<String> consumer) {
         Bukkit.getScheduler().runTaskAsynchronously(this.plugin, () ->
         {
             try (InputStream inputStream = new URL("https://api.spigotmc.org/legacy/update.php?resource=" + this.resourceId)
                     .openStream();
-            
-                 Scanner scanner = new Scanner(inputStream))
-            {
+
+                 Scanner scanner = new Scanner(inputStream)) {
                 if (scanner.hasNext())
                     consumer.accept(scanner.next());
-            }
-            catch (IOException ex)
-            {
-                plugin.getLogger().info("Failed to check for updates.");
+            } catch (IOException ex) {
+                Bukkit.getLogger().info("Failed to check for updates.");
             }
         });
     }

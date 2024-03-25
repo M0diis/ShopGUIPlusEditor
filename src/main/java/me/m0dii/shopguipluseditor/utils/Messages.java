@@ -1,4 +1,4 @@
-package me.M0dii.ShopGUIPlusEditor.Utils;
+package me.m0dii.shopguipluseditor.utils;
 
 public enum Messages
 {
