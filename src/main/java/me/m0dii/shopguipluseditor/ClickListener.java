@@ -1,19 +1,19 @@
 package me.m0dii.shopguipluseditor;
 
+import me.m0dii.shopguipluseditor.utils.Messages;
+import me.m0dii.shopguipluseditor.utils.Utils;
 import net.brcdev.shopgui.ShopGuiPlusApi;
 import net.brcdev.shopgui.inventory.ShopInventoryHolder;
+import net.brcdev.shopgui.shop.Shop;
 import net.brcdev.shopgui.shop.item.ShopItem;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
@@ -22,167 +22,202 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.io.File;
-import java.io.IOException;
-
 public class ClickListener implements Listener {
-    private static final String SEPARATOR = File.separator;
-
-    private final File splus;
-
     private final ShopGUIPlusEditor plugin;
 
     public ClickListener(ShopGUIPlusEditor plugin) {
         this.plugin = plugin;
-
-        File plugins = plugin.getDataFolder().getParentFile();
-
-        splus = new File(plugins.getAbsolutePath() + SEPARATOR + "ShopGUIPlus" + SEPARATOR + "shops");
     }
 
     @EventHandler
-    public void onMoveItem(InventoryMoveItemEvent e) {
-        Inventory inv = e.getSource();
-
-        InventoryHolder holder = inv.getHolder();
-
-        if (holder instanceof ShopEditGUI) {
-            e.setCancelled(true);
-        }
-
-        inv = e.getDestination();
-
-        holder = inv.getHolder();
-
-        if (holder instanceof ShopEditGUI) {
-            e.setCancelled(true);
+    public void onMoveItem(InventoryMoveItemEvent event) {
+        if (isEditorInventory(event.getSource()) || isEditorInventory(event.getDestination())) {
+            event.setCancelled(true);
         }
     }
 
     @EventHandler
-    public void onClick(InventoryClickEvent e) {
-        Inventory inv = e.getClickedInventory();
-        HumanEntity clicker = e.getWhoClicked();
+    public void onDrag(InventoryDragEvent event) {
+        if (event.getInventory().getHolder() instanceof ShopEditGUI) {
+            event.setCancelled(true);
+        }
+    }
 
-        if (inv != null) {
-            InventoryHolder holder = inv.getHolder();
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onClick(InventoryClickEvent event) {
+        Inventory clickedInventory = event.getClickedInventory();
 
-            if (holder instanceof ShopEditGUI) {
-                if (!clicker.hasPermission("shopguipluseditor.use"))
-                    return;
+        if (clickedInventory == null) {
+            return;
+        }
 
-                ShopEditGUI se = (ShopEditGUI) holder;
-                ShopItem shopItem = se.getShopItem();
+        InventoryHolder holder = clickedInventory.getHolder();
 
-                e.setCancelled(true);
+        if (holder instanceof ShopEditGUI editor) {
+            handleEditorClick(event, editor);
+            return;
+        }
 
-                ItemStack clicked = e.getCurrentItem();
+        if (holder instanceof ShopInventoryHolder) {
+            handleShopClick(event);
+        }
+    }
 
-                if (clicked != null) {
-                    ItemMeta itemMeta = clicked.getItemMeta();
+    private void handleEditorClick(InventoryClickEvent event, ShopEditGUI editor) {
+        event.setCancelled(true);
 
-                    PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
+        HumanEntity clicker = event.getWhoClicked();
 
-                    NamespacedKey typeKey = new NamespacedKey(this.plugin, "type");
+        if (!clicker.hasPermission("shopguipluseditor.use")) {
+            clicker.sendMessage(message(Messages.NO_PERMISSION, editor));
+            return;
+        }
 
-                    int multiplier = 1;
+        if (!(clicker instanceof Player player)) {
+            return;
+        }
 
-                    NamespacedKey multiplierKey = new NamespacedKey(this.plugin, "shift-multiplier");
+        ItemStack clicked = event.getCurrentItem();
 
-                    if (pdc.has(multiplierKey, PersistentDataType.INTEGER) && e.isShiftClick()) {
-                        multiplier = pdc.get(multiplierKey, PersistentDataType.INTEGER);
-                    }
+        if (clicked == null || clicked.getType().isAir()) {
+            return;
+        }
 
-                    if (pdc.has(typeKey, PersistentDataType.STRING)) {
-                        String type = pdc.get(typeKey, PersistentDataType.STRING);
+        ItemMeta itemMeta = clicked.getItemMeta();
 
-                        if (type.equalsIgnoreCase("sell")) {
-                            NamespacedKey amountKey = new NamespacedKey(this.plugin, "amount");
+        if (itemMeta == null) {
+            return;
+        }
 
-                            if (pdc.has(amountKey, PersistentDataType.DOUBLE)) {
-                                double amount = pdc.get(amountKey, PersistentDataType.DOUBLE);
+        PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
+        String action = pdc.get(new NamespacedKey(plugin, "editor-action"), PersistentDataType.STRING);
 
-                                se.adjustSellPrice(amount, e.isRightClick());
-                            }
-                        }
+        if (action == null) {
+            return;
+        }
 
-                        if (type.equalsIgnoreCase("buy")) {
-                            NamespacedKey amountKey = new NamespacedKey(this.plugin, "amount");
+        switch (action) {
+            case ShopEditGUI.ACTION_ADJUST_BUY -> {
+                Double amount = pdc.get(new NamespacedKey(plugin, "amount"), PersistentDataType.DOUBLE);
+                Integer multiplier = pdc.get(new NamespacedKey(plugin, "shift-multiplier"),
+                        PersistentDataType.INTEGER);
 
-                            if (pdc.has(amountKey, PersistentDataType.DOUBLE)) {
-                                double amount = pdc.get(amountKey, PersistentDataType.DOUBLE);
-
-                                se.adjustBuyPrice(amount * multiplier, e.isRightClick());
-                            }
-                        }
-                    }
-
-                    if (clicked.getType().equals(Material.BARRIER)) {
-                        ShopGuiPlusApi.openShop((Player) clicker, shopItem.getShop().getId(), shopItem.getPage());
-                    }
-
-                    String shop = shopItem.getShop().getId();
-
-                    File cfgFile = new File(splus + SEPARATOR + shop + ".yml");
-
-                    if (e.getSlot() == 20) {
-                        shopItem.setBuyPrice(se.getNewBuyPrice());
-
-                        setAndSave(cfgFile, String.format("%s.items.%s.buyPrice", shop, shopItem.getId()), se.getNewBuyPrice());
-
-                        clicker.sendMessage(ChatColor.translateAlternateColorCodes(
-                                '&', "&aSuccessfully updated the item price."));
-
-                        clicker.openInventory(new ShopEditGUI(shopItem).getInventory());
-                    } else if (e.getSlot() == 24) {
-                        shopItem.setSellPrice(se.getNewSellPrice());
-
-                        setAndSave(cfgFile, String.format("%s.items.%s.sellPrice", shop, shopItem.getId()), se.getNewSellPrice());
-
-                        clicker.sendMessage(ChatColor.translateAlternateColorCodes(
-                                '&', "&aSuccessfully updated the item price."));
-
-                        clicker.openInventory(new ShopEditGUI(shopItem).getInventory());
-                    }
+                if (amount != null) {
+                    double value = amount * (event.isShiftClick() && multiplier != null ? multiplier : 1);
+                    editor.adjustBuyPrice(value, event.isRightClick());
                 }
             }
+            case ShopEditGUI.ACTION_ADJUST_SELL -> {
+                Double amount = pdc.get(new NamespacedKey(plugin, "amount"), PersistentDataType.DOUBLE);
+                Integer multiplier = pdc.get(new NamespacedKey(plugin, "shift-multiplier"),
+                        PersistentDataType.INTEGER);
 
-            if (holder instanceof ShopInventoryHolder) {
-                if (!clicker.hasPermission("shopguipluseditor.use"))
-                    return;
-
-                if (e.isShiftClick() && e.isRightClick()) {
-                    ItemStack clicked = e.getCurrentItem();
-                    ShopItem shopItem = ShopGuiPlusApi.getItemStackShopItem(clicked);
-
-                    if(shopItem == null && clicked != null) {
-                        Bukkit.getLogger().warning(
-                                "Failed to get ShopItem from ItemStack: " + clicked.getType().name()
-                        );
-                        return;
-                    }
-
-                    if(shopItem == null) {
-                        return;
-                    }
-
-                    ShopEditGUI shopEditGUI = new ShopEditGUI(shopItem);
-
-                    shopEditGUI.display(e.getWhoClicked());
+                if (amount != null) {
+                    double value = amount * (event.isShiftClick() && multiplier != null ? multiplier : 1);
+                    editor.adjustSellPrice(value, event.isRightClick());
                 }
+            }
+            case ShopEditGUI.ACTION_SAVE -> handleSave(player, editor);
+            case ShopEditGUI.ACTION_REMOVE -> handleRemove(player, editor);
+            case ShopEditGUI.ACTION_BACK -> ShopGuiPlusApi.openShop(player, editor.getShopId(), editor.getPage());
+            default -> {
             }
         }
     }
 
-    private void setAndSave(File cfgFile, String path, double value) {
-        FileConfiguration cfg = YamlConfiguration.loadConfiguration(cfgFile);
+    private void handleSave(Player player, ShopEditGUI editor) {
+        ShopFileService.SaveResult result;
 
-        cfg.set(path, value);
+        if (editor.isCreateMode()) {
+            if (!player.hasPermission("shopguipluseditor.command.add")) {
+                player.sendMessage(message(Messages.NO_PERMISSION, editor));
+                return;
+            }
 
-        try {
-            cfg.save(cfgFile);
-        } catch (IOException ex) {
-            plugin.getLogger().severe("Failed to save shop configuration file: " + cfgFile.getAbsolutePath());
+            result = plugin.getShopFileService().createItem(editor);
+
+            if (!result.success()) {
+                player.sendMessage(message(Messages.SAVE_FAILED, editor));
+                return;
+            }
+
+            player.sendMessage(message(Messages.ITEM_ADDED, editor));
+            ShopGuiPlusApi.openShop(player, editor.getShopId(), editor.getPage());
+            return;
         }
+
+        result = plugin.getShopFileService().updatePrices(editor.getShopId(), editor.getItemId(),
+                editor.getNewBuyPrice(), editor.getNewSellPrice());
+
+        if (!result.success()) {
+            player.sendMessage(message(Messages.SAVE_FAILED, editor));
+            return;
+        }
+
+        player.sendMessage(message(Messages.SET_PRICES, editor));
+
+        Shop reloadedShop = ShopGuiPlusApi.getShop(editor.getShopId());
+
+        if (reloadedShop != null) {
+            ShopItem reloadedItem = reloadedShop.getShopItem(editor.getItemId());
+
+            if (reloadedItem != null) {
+                new ShopEditGUI(reloadedItem).display(player);
+                return;
+            }
+        }
+
+        ShopGuiPlusApi.openShop(player, editor.getShopId(), editor.getPage());
+    }
+
+    private void handleRemove(Player player, ShopEditGUI editor) {
+        if (!player.hasPermission("shopguipluseditor.command.remove")) {
+            player.sendMessage(message(Messages.NO_PERMISSION, editor));
+            return;
+        }
+
+        ShopFileService.SaveResult result = plugin.getShopFileService()
+                .removeItem(editor.getShopId(), editor.getItemId());
+
+        if (!result.success()) {
+            player.sendMessage(message(Messages.SAVE_FAILED, editor));
+            return;
+        }
+
+        player.sendMessage(message(Messages.ITEM_REMOVED, editor));
+        ShopGuiPlusApi.openShop(player, editor.getShopId(), editor.getPage());
+    }
+
+    private void handleShopClick(InventoryClickEvent event) {
+        HumanEntity clicker = event.getWhoClicked();
+
+        if (!clicker.hasPermission("shopguipluseditor.use")
+                || !(clicker instanceof Player player)
+                || !event.isShiftClick()) {
+            return;
+        }
+
+        ItemStack clicked = event.getCurrentItem();
+
+        if (clicked == null || clicked.getType().isAir()) {
+            return;
+        }
+
+        ShopItem shopItem = ShopGuiPlusApi.getItemStackShopItem(player, clicked);
+
+        if (shopItem == null) {
+            return;
+        }
+
+        event.setCancelled(true);
+        new ShopEditGUI(shopItem).display(player);
+    }
+
+    private boolean isEditorInventory(Inventory inventory) {
+        return inventory != null && inventory.getHolder() instanceof ShopEditGUI;
+    }
+
+    private String message(Messages key, ShopEditGUI editor) {
+        return Utils.setPlaceholders(editor, plugin.getCfg().getMessages().get(key));
     }
 }

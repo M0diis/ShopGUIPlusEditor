@@ -7,47 +7,50 @@ import org.bstats.bukkit.Metrics;
 import org.bstats.charts.CustomChart;
 import org.bstats.charts.MultiLineChart;
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.plugin.PluginManager;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
 public class ShopGUIPlusEditor extends JavaPlugin {
     private static ShopGUIPlusEditor instance;
 
-    private PluginManager manager;
-
     private Config cfg;
+    private ShopFileService shopFileService;
 
     public static ShopGUIPlusEditor getInstance() {
         return instance;
     }
 
     public Config getCfg() {
-        if (cfg == null) {
-            cfg = new Config(this);
-        }
-
-        return this.cfg;
+        return cfg;
     }
 
+    public ShopFileService getShopFileService() {
+        return shopFileService;
+    }
+
+    @Override
     public void onEnable() {
         instance = this;
 
+        saveDefaultConfig();
+        reloadConfig();
+
         this.cfg = new Config(this);
         this.cfg.load(this);
+        this.shopFileService = new ShopFileService(this);
 
+        getServer().getPluginManager().registerEvents(new ClickListener(this), this);
 
-        this.manager = getServer().getPluginManager();
+        PluginCommand command = getCommand("shopguipluseditor");
 
-        this.manager.registerEvents(new ClickListener(this), this);
-
-        getCommand("shopguipluseditor").setExecutor(new Commands(this));
-
-        prepareConfig();
+        if (command != null) {
+            Commands commands = new Commands(this);
+            command.setExecutor(commands);
+            command.setTabCompleter(commands);
+        }
 
         getLogger().info("ShopGUIPlusEditor has been enabled.");
 
@@ -55,15 +58,19 @@ public class ShopGUIPlusEditor extends JavaPlugin {
         setupMetrics();
     }
 
+    @Override
+    public void onDisable() {
+        getLogger().info("ShopGUIPlusEditor has been disabled.");
+    }
+
     private void checkForUpdates() {
         new UpdateChecker(this, 94668).getVersion(ver ->
         {
-            String curr = this.getDescription().getVersion();
+            String currentVersion = this.getDescription().getVersion();
 
-            if (!curr.equalsIgnoreCase(
-                    ver.replace("v", ""))) {
+            if (!currentVersion.equalsIgnoreCase(ver.replace("v", ""))) {
                 getLogger().info("You are running an outdated version of ShopGUIPlusEditor.");
-                getLogger().info("Latest version: " + ver + ", you are using: " + curr);
+                getLogger().info("Latest version: " + ver + ", you are using: " + currentVersion);
                 getLogger().info("You can download the latest version on Spigot:");
                 getLogger().info("https://www.spigotmc.org/resources/94668/");
             }
@@ -73,7 +80,7 @@ public class ShopGUIPlusEditor extends JavaPlugin {
     private void setupMetrics() {
         Metrics metrics = new Metrics(this, 12210);
 
-        CustomChart c = new MultiLineChart("players_and_servers", () ->
+        CustomChart chart = new MultiLineChart("players_and_servers", () ->
         {
             Map<String, Integer> valueMap = new HashMap<>();
 
@@ -83,56 +90,6 @@ public class ShopGUIPlusEditor extends JavaPlugin {
             return valueMap;
         });
 
-        metrics.addCustomChart(c);
-    }
-
-    public void onDisable() {
-        getLogger().info("ShopGUIPlusEditor has been disabled.");
-
-        this.manager.disablePlugin(this);
-    }
-
-    private void prepareConfig() {
-        File configFile = new File(this.getDataFolder(), "config.yml");
-
-
-        if (!configFile.exists()) {
-            //noinspection ResultOfMethodCallIgnored
-            configFile.getParentFile().mkdirs();
-
-            this.copy(this.getResource("config.yml"), configFile);
-        }
-
-        getConfig().options().copyDefaults(true);
-
-        try {
-            getConfig().save(configFile);
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-
-        YamlConfiguration.loadConfiguration(configFile);
-    }
-
-    private void copy(InputStream in, File file) {
-        if (in != null) {
-            try {
-                OutputStream out = new FileOutputStream(file);
-
-                byte[] buf = new byte[1024];
-
-                int len;
-
-                while ((len = in.read(buf)) > 0)
-                    out.write(buf, 0, len);
-
-                out.close();
-                in.close();
-            } catch (Exception e) {
-                getLogger().warning("Error copying resource: " + e.getMessage());
-
-                e.printStackTrace();
-            }
-        }
+        metrics.addCustomChart(chart);
     }
 }

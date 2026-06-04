@@ -5,154 +5,267 @@ import me.m0dii.shopguipluseditor.utils.Utils;
 import net.brcdev.shopgui.shop.item.ShopItem;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ShopEditGUI implements InventoryHolder {
-    private static final NumberFormat formatter = new DecimalFormat("#0.00");
-    private final Config cfg = ShopGUIPlusEditor.getInstance().getCfg();
+    public static final String ACTION_ADJUST_BUY = "adjust-buy";
+    public static final String ACTION_ADJUST_SELL = "adjust-sell";
+    public static final String ACTION_SAVE = "save";
+    public static final String ACTION_REMOVE = "remove";
+    public static final String ACTION_BACK = "back";
+
+    private final ShopGUIPlusEditor plugin = ShopGUIPlusEditor.getInstance();
+    private final Config cfg = plugin.getCfg();
+
+    private final boolean createMode;
+    private final String shopId;
+    private final String itemId;
+    private final ItemStack previewItem;
+    private final int page;
+    private final int slot;
+
+    private final ShopItem existingItem;
+
+    private final double originalBuyPrice;
+    private final double originalSellPrice;
+
+    private double newBuyPrice;
+    private double newSellPrice;
 
     private Inventory inv;
-    private final ShopItem item;
-
-    private double newBuyPrice = 0;
-    private double newSellPrice = 0;
-
-    public double getNewBuyPrice() {
-        return this.newBuyPrice;
-    }
-
-    public double getNewSellPrice() {
-        return this.newSellPrice;
-    }
-
-    public ShopItem getShopItem() {
-        return this.item;
-    }
 
     public ShopEditGUI(ShopItem item) {
-        this.item = item;
-
+        this.createMode = false;
+        this.existingItem = item;
+        this.shopId = item.getShop().getId();
+        this.itemId = item.getId();
+        this.page = item.getPage();
+        this.slot = item.getSlot();
+        this.previewItem = buildPreview(item);
+        this.originalBuyPrice = item.getBuyPrice();
+        this.originalSellPrice = item.getSellPrice();
         this.newBuyPrice = item.getBuyPrice();
         this.newSellPrice = item.getSellPrice();
 
         initialise();
     }
 
-    private void initialise() {
-        this.inv = Bukkit.createInventory(this, 54, format(cfg.getPriceEditTitle()));
+    public ShopEditGUI(String shopId, String itemId, ItemStack previewItem, int page, int slot,
+                       double buyPrice, double sellPrice) {
+        this.createMode = true;
+        this.existingItem = null;
+        this.shopId = shopId;
+        this.itemId = itemId;
+        this.page = page;
+        this.slot = slot;
+        this.previewItem = previewItem.clone();
+        this.originalBuyPrice = buyPrice;
+        this.originalSellPrice = sellPrice;
+        this.newBuyPrice = buyPrice;
+        this.newSellPrice = sellPrice;
 
-        this.inv.setItem(22, item.getPlaceholder());
-
-        ItemStack buyPriceButton = new ItemStack(cfg.getBuyPriceButton());
-        inv.setItem(20, updateLore(buyPriceButton));
-
-        ItemStack sellPriceButton = new ItemStack(cfg.getSellPriceButton());
-
-        inv.setItem(24, updateLore(sellPriceButton));
-
-        ItemStack buy1 = ShopGUIPlusEditor.getInstance().getCfg().getAdjustButton("buy", this, getShopItem(), 1);
-        ItemStack buy2 = ShopGUIPlusEditor.getInstance().getCfg().getAdjustButton("buy", this, getShopItem(), 2);
-        ItemStack buy3 = ShopGUIPlusEditor.getInstance().getCfg().getAdjustButton("buy", this, getShopItem(), 3);
-
-        inv.setItem(37, buy1);
-        inv.setItem(38, buy2);
-        inv.setItem(39, buy3);
-
-        ItemStack sell1 = ShopGUIPlusEditor.getInstance().getCfg().getAdjustButton("sell", this, getShopItem(), 1);
-        ItemStack sell2 = ShopGUIPlusEditor.getInstance().getCfg().getAdjustButton("sell", this, getShopItem(), 2);
-        ItemStack sell3 = ShopGUIPlusEditor.getInstance().getCfg().getAdjustButton("sell", this, getShopItem(), 3);
-
-        inv.setItem(41, sell3);
-        inv.setItem(42, sell2);
-        inv.setItem(43, sell1);
-
-        Utils.createItem(Material.BARRIER, 1, "&8» &aGo back", new ArrayList<>(), 4, inv);
-
-        fill();
+        initialise();
     }
 
-    private ItemStack updateLore(ItemStack item) {
-        List<String> lore = item.getLore();
-        List<String> newLore = new ArrayList<>();
-
-        if (lore != null) {
-            for (String s : lore) {
-                newLore.add(format(s));
-            }
-        }
-
-        ItemMeta m = item.getItemMeta();
-
-        m.setLore(newLore);
-        item.setItemMeta(m);
-
-        return item;
+    public boolean isCreateMode() {
+        return createMode;
     }
 
-    private void fill() {
-        for (int i = 0; i < inv.getSize(); i++) {
-            ItemStack item = inv.getItem(i);
+    public String getShopId() {
+        return shopId;
+    }
 
-            if (item == null)
-                inv.setItem(i, cfg.getFillItem());
-        }
+    public String getItemId() {
+        return itemId;
+    }
+
+    public ItemStack getPreviewItem() {
+        return previewItem.clone();
+    }
+
+    public int getPage() {
+        return page;
+    }
+
+    public int getSlot() {
+        return slot;
+    }
+
+    public double getOriginalBuyPrice() {
+        return originalBuyPrice;
+    }
+
+    public double getOriginalSellPrice() {
+        return originalSellPrice;
+    }
+
+    public double getNewBuyPrice() {
+        return newBuyPrice;
+    }
+
+    public double getNewSellPrice() {
+        return newSellPrice;
+    }
+
+    public ShopItem getExistingItem() {
+        return existingItem;
     }
 
     public void adjustBuyPrice(double amount, boolean subtract) {
-        newBuyPrice = subtract ? newBuyPrice - amount : newBuyPrice + amount;
-
-        newBuyPrice = Double.parseDouble(formatter.format(newBuyPrice));
-
-        ItemStack buyPriceButton = new ItemStack(cfg.getBuyPriceButton());
-
-        ItemStack buy1 = ShopGUIPlusEditor.getInstance().getCfg().getAdjustButton("buy", this, getShopItem(), 1);
-        ItemStack buy2 = ShopGUIPlusEditor.getInstance().getCfg().getAdjustButton("buy", this, getShopItem(), 2);
-        ItemStack buy3 = ShopGUIPlusEditor.getInstance().getCfg().getAdjustButton("buy", this, getShopItem(), 3);
-
-        inv.setItem(37, updateLore(buy1));
-        inv.setItem(38, updateLore(buy2));
-        inv.setItem(39, updateLore(buy3));
-
-        inv.setItem(20, updateLore(buyPriceButton));
+        newBuyPrice = cfg.clampBuyPrice(newBuyPrice + (subtract ? -amount : amount));
+        refresh();
     }
 
     public void adjustSellPrice(double amount, boolean subtract) {
-        newSellPrice = subtract ? newSellPrice - amount : newSellPrice + amount;
-
-        newSellPrice = Double.parseDouble(formatter.format(newSellPrice));
-
-        ItemStack sellPriceButton = new ItemStack(cfg.getSellPriceButton());
-
-        ItemStack sell1 = ShopGUIPlusEditor.getInstance().getCfg().getAdjustButton("sell", this, getShopItem(), 1);
-        ItemStack sell2 = ShopGUIPlusEditor.getInstance().getCfg().getAdjustButton("sell", this, getShopItem(), 2);
-        ItemStack sell3 = ShopGUIPlusEditor.getInstance().getCfg().getAdjustButton("sell", this, getShopItem(), 3);
-
-        inv.setItem(41, updateLore(sell3));
-        inv.setItem(42, updateLore(sell2));
-        inv.setItem(43, updateLore(sell1));
-
-        inv.setItem(24, updateLore(sellPriceButton));
+        newSellPrice = cfg.clampSellPrice(newSellPrice + (subtract ? -amount : amount));
+        refresh();
     }
 
-    private String format(String text) {
-        return Utils.setPlaceholders(item, this, text);
-    }
-
-    public void display(HumanEntity e) {
-        e.openInventory(this.inv);
+    public void display(HumanEntity entity) {
+        entity.openInventory(inv);
     }
 
     @Override
     public Inventory getInventory() {
         return inv;
+    }
+
+    private void initialise() {
+        this.inv = Bukkit.createInventory(this, cfg.getEditMenuSize(),
+                Utils.setPlaceholders(this, cfg.getPriceEditTitle()));
+
+        refresh();
+    }
+
+    private void refresh() {
+        fill();
+
+        if (isValidSlot(cfg.getPreviewSlot())) {
+            inv.setItem(cfg.getPreviewSlot(), previewItem.clone());
+        }
+
+        placeButton(cfg.getBuyPriceButton(), null, null);
+        placeButton(cfg.getSellPriceButton(), null, null);
+        placeButton(cfg.getSaveButton(), ACTION_SAVE, null);
+        placeButton(cfg.getBackButton(), ACTION_BACK, null);
+
+        if (!createMode) {
+            placeButton(cfg.getRemoveButton(), ACTION_REMOVE, null);
+        }
+
+        for (Config.AdjustButtonTemplate button : cfg.getBuyAdjustButtons()) {
+            placeButton(new Config.ButtonTemplate(button.slot(), button.item()),
+                    ACTION_ADJUST_BUY, button);
+        }
+
+        for (Config.AdjustButtonTemplate button : cfg.getSellAdjustButtons()) {
+            placeButton(new Config.ButtonTemplate(button.slot(), button.item()),
+                    ACTION_ADJUST_SELL, button);
+        }
+    }
+
+    private void placeButton(Config.ButtonTemplate template, String action,
+                             Config.AdjustButtonTemplate adjustButton) {
+        if (template == null || !isValidSlot(template.slot())) {
+            return;
+        }
+
+        ItemStack item = render(template.item(), adjustButton);
+
+        if (action != null) {
+            ItemMeta meta = item.getItemMeta();
+
+            if (meta != null) {
+                PersistentDataContainer pdc = meta.getPersistentDataContainer();
+                pdc.set(new NamespacedKey(plugin, "editor-action"), PersistentDataType.STRING, action);
+
+                if (adjustButton != null) {
+                    pdc.set(new NamespacedKey(plugin, "amount"), PersistentDataType.DOUBLE, adjustButton.amount());
+                    pdc.set(new NamespacedKey(plugin, "shift-multiplier"),
+                            PersistentDataType.INTEGER, adjustButton.shiftMultiplier());
+                }
+
+                item.setItemMeta(meta);
+            }
+        }
+
+        inv.setItem(template.slot(), item);
+    }
+
+    private ItemStack render(ItemStack template, Config.AdjustButtonTemplate adjustButton) {
+        ItemStack item = template.clone();
+        ItemMeta meta = item.getItemMeta();
+
+        if (meta == null) {
+            return item;
+        }
+
+        if (meta.hasDisplayName()) {
+            String displayName = meta.getDisplayName();
+
+            if (adjustButton != null) {
+                displayName = displayName.replace("%amount%", Utils.formatPrice(adjustButton.amount()));
+                displayName = displayName.replace("%shift_multiplier%",
+                        String.valueOf(adjustButton.shiftMultiplier()));
+            }
+
+            meta.setDisplayName(Utils.setPlaceholders(this, displayName));
+        }
+
+        if (meta.hasLore() && meta.getLore() != null) {
+            List<String> renderedLore = new ArrayList<>();
+
+            for (String line : meta.getLore()) {
+                String rendered = line;
+
+                if (adjustButton != null) {
+                    rendered = rendered.replace("%amount%", Utils.formatPrice(adjustButton.amount()));
+                    rendered = rendered.replace("%shift_multiplier%",
+                            String.valueOf(adjustButton.shiftMultiplier()));
+                }
+
+                renderedLore.add(Utils.setPlaceholders(this, rendered));
+            }
+
+            meta.setLore(renderedLore);
+        }
+
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private void fill() {
+        for (int slotIndex = 0; slotIndex < inv.getSize(); slotIndex++) {
+            inv.setItem(slotIndex, cfg.getFillItem());
+        }
+    }
+
+    private boolean isValidSlot(int slot) {
+        return slot >= 0 && slot < inv.getSize();
+    }
+
+    private ItemStack buildPreview(ShopItem item) {
+        ItemStack source;
+
+        if (item.getItem() != null) {
+            source = item.getItem().clone();
+        } else if (item.getPlaceholder() != null) {
+            source = item.getPlaceholder().clone();
+        } else {
+            source = new ItemStack(Material.STONE);
+        }
+
+        source.setAmount(Math.max(1, source.getAmount()));
+        return source;
     }
 }

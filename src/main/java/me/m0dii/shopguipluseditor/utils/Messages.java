@@ -1,8 +1,23 @@
 package me.m0dii.shopguipluseditor.utils;
 
-public enum Messages
-{
+public enum Messages {
     NO_PERMISSION,
+    PLAYER_ONLY,
     SET_PRICES,
+    ITEM_ADDED,
+    ITEM_REMOVED,
+    HOLD_ITEM,
+    SHOP_NOT_FOUND,
+    ITEM_NOT_FOUND,
+    MATERIAL_NOT_FOUND,
+    MATERIAL_AMBIGUOUS,
+    MATERIAL_AMBIGUOUS_IN_SHOP,
+    INVALID_NUMBER,
+    INVALID_SLOT,
+    INVALID_PAGE,
+    INVALID_ITEM_ID,
+    ITEM_ALREADY_EXISTS,
+    SLOT_OCCUPIED,
+    SAVE_FAILED,
     RELOADED
 }

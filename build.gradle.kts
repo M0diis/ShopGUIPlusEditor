@@ -54,6 +54,15 @@ tasks {
         runDirectory(file("run/latest"))
         minecraftVersion("1.21.11")
 
+        downloadPlugins {
+            modrinth("essentialsx", "2.21.2")
+            modrinth("vaultunlocked", "2.9.0")
+
+            pluginJars(
+                file("libs/ShopGUIPlus-1.113.0.jar")
+            )
+        }
+
         doFirst(doFirstEula)
     }
 }

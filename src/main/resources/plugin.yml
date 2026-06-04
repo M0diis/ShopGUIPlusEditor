@@ -1,8 +1,8 @@
 name: ShopGUIPlusEditor
 main: me.m0dii.shopguipluseditor.ShopGUIPlusEditor
-description: ShopGUIPlusEditor
-version: 1.3.0
-api-version: 1.13
+description: ShopGUIPlus editor with price, add, and remove tooling.
+version: 2.0.0
+api-version: "1.13"
 author: M0dii
 softdepend: [ShopGUIPlus]
 commands:
@@ -11,8 +11,17 @@ commands:
     aliases: [sgpe, sge, shopguieditor]
 permissions:
   shopguipluseditor.use:
-    description: Permission to use the editor.
+    description: Permission to open the in-shop editor.
     default: op
   shopguipluseditor.command.reload:
-    description: Permission to reload the config.
+    description: Permission to reload the plugin config.
+    default: op
+  shopguipluseditor.command.add:
+    description: Permission to open the add-item editor.
+    default: op
+  shopguipluseditor.command.edit:
+    description: Permission to open the edit command editor.
+    default: op
+  shopguipluseditor.command.remove:
+    description: Permission to remove shop items.
     default: op
