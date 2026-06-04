@@ -8,23 +8,16 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Commands implements CommandExecutor, TabCompleter {
-    private final File splus;
     private final Config cfg;
 
-    ShopGUIPlusEditor plugin;
-    String sep = File.separator;
+    private ShopGUIPlusEditor plugin;
 
     public Commands(ShopGUIPlusEditor plugin) {
         this.plugin = plugin;
-
-        splus = new File(plugin.getDataFolder().getParentFile().getAbsolutePath()
-                + sep + "ShopGUIPlus" + sep + "shops");
-
         this.cfg = plugin.getCfg();
     }
 
@@ -111,7 +104,6 @@ public class Commands implements CommandExecutor, TabCompleter {
 
         if (args.length == 1) {
             completes.add("reload");
-
             completes.add("add");
         }
 
@@ -120,7 +112,6 @@ public class Commands implements CommandExecutor, TabCompleter {
             completes.add("command");
             completes.add("permission");
         }
-
 
         return completes;
     }

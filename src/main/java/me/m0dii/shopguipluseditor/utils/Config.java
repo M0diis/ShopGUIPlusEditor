@@ -11,8 +11,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 public class Config {
     FileConfiguration cfg;
@@ -30,7 +31,7 @@ public class Config {
         this.load(plugin);
     }
 
-    HashMap<Messages, String> messages;
+    private Map<Messages, String> messages;
 
     private String priceEditTitle;
     private String savedPricesMessage, noPermissionMessage;
@@ -133,7 +134,7 @@ public class Config {
     public void load(ShopGUIPlusEditor plugin) {
         this.cfg = plugin.getConfig();
 
-        this.messages = new HashMap<>();
+        this.messages = new EnumMap<>(Messages.class);
 
         this.priceEditTitle = getStr("edit-menu.title");
 
@@ -165,7 +166,7 @@ public class Config {
         messages.put(Messages.RELOADED, getStr("messages.reloaded"));
     }
 
-    public HashMap<Messages, String> getMessages() {
+    public Map<Messages, String> getMessages() {
         return this.messages;
     }
 

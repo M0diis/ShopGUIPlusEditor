@@ -1,7 +1,6 @@
 package me.m0dii.shopguipluseditor;
 
 import net.brcdev.shopgui.ShopGuiPlusApi;
-import net.brcdev.shopgui.exception.player.PlayerDataNotLoadedException;
 import net.brcdev.shopgui.inventory.ShopInventoryHolder;
 import net.brcdev.shopgui.shop.item.ShopItem;
 import org.bukkit.Bukkit;
@@ -27,7 +26,7 @@ import java.io.File;
 import java.io.IOException;
 
 public class ClickListener implements Listener {
-    private final String sep = File.separator;
+    private static final String SEPARATOR = File.separator;
 
     private final File splus;
 
@@ -38,8 +37,7 @@ public class ClickListener implements Listener {
 
         File plugins = plugin.getDataFolder().getParentFile();
 
-        splus = new File(plugins.getAbsolutePath() +
-                sep + "ShopGUIPlus" + sep + "shops");
+        splus = new File(plugins.getAbsolutePath() + SEPARATOR + "ShopGUIPlus" + SEPARATOR + "shops");
     }
 
     @EventHandler
@@ -120,17 +118,12 @@ public class ClickListener implements Listener {
                     }
 
                     if (clicked.getType().equals(Material.BARRIER)) {
-                        try {
-                            ShopGuiPlusApi.openShop(
-                                    (Player) clicker, shopItem.getShop().getId(), shopItem.getPage());
-                        } catch (PlayerDataNotLoadedException ex) {
-                            ex.printStackTrace();
-                        }
+                        ShopGuiPlusApi.openShop((Player) clicker, shopItem.getShop().getId(), shopItem.getPage());
                     }
 
                     String shop = shopItem.getShop().getId();
 
-                    File cfgFile = new File(splus + sep + shop + ".yml");
+                    File cfgFile = new File(splus + SEPARATOR + shop + ".yml");
 
                     if (e.getSlot() == 20) {
                         shopItem.setBuyPrice(se.getNewBuyPrice());
@@ -189,7 +182,7 @@ public class ClickListener implements Listener {
         try {
             cfg.save(cfgFile);
         } catch (IOException ex) {
-            ex.printStackTrace();
+            plugin.getLogger().severe("Failed to save shop configuration file: " + cfgFile.getAbsolutePath());
         }
     }
 }
