@@ -66,7 +66,7 @@ public class ShopGUIPlusEditor extends JavaPlugin {
     private void checkForUpdates() {
         new UpdateChecker(this, 94668).getVersion(ver ->
         {
-            String currentVersion = this.getDescription().getVersion();
+            String currentVersion = getPluginMeta().getVersion();
 
             if (!currentVersion.equalsIgnoreCase(ver.replace("v", ""))) {
                 getLogger().info("You are running an outdated version of ShopGUIPlusEditor.");

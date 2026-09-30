@@ -3,6 +3,7 @@ package me.m0dii.shopguipluseditor;
 import me.m0dii.shopguipluseditor.utils.Config;
 import me.m0dii.shopguipluseditor.utils.Utils;
 import net.brcdev.shopgui.shop.item.ShopItem;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -14,7 +15,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ShopEditGUI implements InventoryHolder {
@@ -210,38 +210,31 @@ public class ShopEditGUI implements InventoryHolder {
             return item;
         }
 
-        if (meta.hasDisplayName()) {
-            String displayName = meta.getDisplayName();
-
-            if (adjustButton != null) {
-                displayName = displayName.replace("%amount%", Utils.formatPrice(adjustButton.amount()));
-                displayName = displayName.replace("%shift_multiplier%",
-                        String.valueOf(adjustButton.shiftMultiplier()));
-            }
-
-            meta.setDisplayName(Utils.setPlaceholders(this, displayName));
+        if (meta.hasDisplayName() && meta.displayName() != null) {
+            Component displayName = meta.displayName();
+            meta.displayName(Utils.setPlaceholders(this, displayName, adjustmentReplacements(adjustButton)));
         }
 
-        if (meta.hasLore() && meta.getLore() != null) {
-            List<String> renderedLore = new ArrayList<>();
-
-            for (String line : meta.getLore()) {
-                String rendered = line;
-
-                if (adjustButton != null) {
-                    rendered = rendered.replace("%amount%", Utils.formatPrice(adjustButton.amount()));
-                    rendered = rendered.replace("%shift_multiplier%",
-                            String.valueOf(adjustButton.shiftMultiplier()));
-                }
-
-                renderedLore.add(Utils.setPlaceholders(this, rendered));
-            }
-
-            meta.setLore(renderedLore);
+        if (meta.hasLore() && meta.lore() != null) {
+            List<Component> renderedLore = meta.lore().stream()
+                    .map(line -> Utils.setPlaceholders(this, line, adjustmentReplacements(adjustButton)))
+                    .toList();
+            meta.lore(renderedLore);
         }
 
         item.setItemMeta(meta);
         return item;
+    }
+
+    private String[] adjustmentReplacements(Config.AdjustButtonTemplate adjustButton) {
+        if (adjustButton == null) {
+            return new String[0];
+        }
+
+        return new String[]{
+                "%amount%", Utils.formatPrice(adjustButton.amount()),
+                "%shift_multiplier%", String.valueOf(adjustButton.shiftMultiplier())
+        };
     }
 
     private void fill() {

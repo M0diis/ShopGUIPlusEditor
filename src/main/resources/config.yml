@@ -1,3 +1,6 @@
+# Text fields support MiniMessage tags and legacy color codes (& / §), including RGB forms:
+# &#RRGGBB and &x&R&R&G&G&B&B. This applies to the editor title, button names/lore, and messages.
+# MiniMessage reference: https://docs.papermc.io/adventure/minimessage/format/
 edit-menu:
   title: "&8» &2Editing &c%shop_id%&8/&c%item_id%"
   size: 54

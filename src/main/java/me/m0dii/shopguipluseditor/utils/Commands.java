@@ -6,6 +6,7 @@ import me.m0dii.shopguipluseditor.ShopGUIPlusEditor;
 import net.brcdev.shopgui.ShopGuiPlusApi;
 import net.brcdev.shopgui.shop.Shop;
 import net.brcdev.shopgui.shop.item.ShopItem;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -14,8 +15,9 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.StringUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
-import javax.annotation.Nonnull;
 import java.util.*;
 
 public class Commands implements CommandExecutor, TabCompleter {
@@ -30,8 +32,8 @@ public class Commands implements CommandExecutor, TabCompleter {
     }
 
     @Override
-    public boolean onCommand(@Nonnull CommandSender sender, @Nonnull Command cmd,
-                             @Nonnull String alias, @Nonnull String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd,
+                             @NotNull String alias, @NotNull String @NonNull [] args) {
         if (args.length == 0) {
             sendHelp(sender);
             return true;
@@ -50,8 +52,8 @@ public class Commands implements CommandExecutor, TabCompleter {
     }
 
     @Override
-    public List<String> onTabComplete(@Nonnull CommandSender sender, @Nonnull Command cmd,
-                                      @Nonnull String alias, @Nonnull String[] args) {
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command cmd,
+                                      @NotNull String alias, @NotNull String @NonNull [] args) {
         if (args.length == 1) {
             return partialMatches(args[0], List.of("reload", "add", "edit", "remove"));
         }
@@ -141,7 +143,7 @@ public class Commands implements CommandExecutor, TabCompleter {
         }
 
         if (matches.size() == 1) {
-            openEditor(player, matches.get(0).shopItem());
+            openEditor(player, matches.getFirst().shopItem());
             return true;
         }
 
@@ -293,7 +295,7 @@ public class Commands implements CommandExecutor, TabCompleter {
 
     private void sendHelp(CommandSender sender) {
         if (!cfg.getCommandHelp().isEmpty()) {
-            for (String line : cfg.getCommandHelp()) {
+            for (Component line : cfg.getCommandHelp()) {
                 sender.sendMessage(line);
             }
             return;
@@ -330,7 +332,7 @@ public class Commands implements CommandExecutor, TabCompleter {
     private Integer parseInteger(String input) {
         try {
             return Integer.parseInt(input);
-        } catch (NumberFormatException ex) {
+        } catch (NumberFormatException _) {
             return null;
         }
     }
@@ -401,13 +403,7 @@ public class Commands implements CommandExecutor, TabCompleter {
         new ShopEditGUI(item).display(player);
     }
 
-    private String message(Messages key, String... replacements) {
-        String message = cfg.getMessages().get(key);
-
-        for (int i = 0; i + 1 < replacements.length; i += 2) {
-            message = message.replace(replacements[i], replacements[i + 1]);
-        }
-
-        return message;
+    private Component message(Messages key, String... replacements) {
+        return Utils.replacePlaceholders(cfg.getMessages().get(key), replacements);
     }
 }

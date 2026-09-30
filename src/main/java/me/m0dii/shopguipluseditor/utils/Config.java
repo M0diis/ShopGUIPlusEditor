@@ -1,6 +1,7 @@
 package me.m0dii.shopguipluseditor.utils;
 
 import me.m0dii.shopguipluseditor.ShopGUIPlusEditor;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -13,10 +14,10 @@ public class Config {
 
     private FileConfiguration cfg;
 
-    private Map<Messages, String> messages = new EnumMap<>(Messages.class);
-    private List<String> commandHelp = new ArrayList<>();
+    private Map<Messages, Component> messages = new EnumMap<>(Messages.class);
+    private List<Component> commandHelp = new ArrayList<>();
 
-    private String priceEditTitle;
+    private Component priceEditTitle;
     private int editMenuSize;
     private int previewSlot;
 
@@ -54,7 +55,7 @@ public class Config {
         this.cfg = plugin.getConfig();
         this.messages = new EnumMap<>(Messages.class);
 
-        this.priceEditTitle = getStr("edit-menu.title", "&8Editing %item_id%");
+        this.priceEditTitle = getComponent("edit-menu.title", "&8Editing %item_id%");
         this.editMenuSize = normalizeMenuSize(cfg.getInt("edit-menu.size", 54));
         this.previewSlot = cfg.getInt("edit-menu.preview-slot", 22);
 
@@ -81,28 +82,28 @@ public class Config {
 
         this.commandHelp = Utils.format(cfg.getStringList("messages.command-help"));
 
-        messages.put(Messages.NO_PERMISSION, getStr("messages.no-permission", "&cYou do not have permission to do that."));
-        messages.put(Messages.PLAYER_ONLY, getStr("messages.player-only", "&cOnly players can use this command."));
-        messages.put(Messages.SET_PRICES, getStr("messages.successfully-set", "&aSuccessfully updated the item prices."));
-        messages.put(Messages.ITEM_ADDED, getStr("messages.item-added", "&aSuccessfully added the item to the shop."));
-        messages.put(Messages.ITEM_REMOVED, getStr("messages.item-removed", "&aSuccessfully removed the item from the shop."));
-        messages.put(Messages.HOLD_ITEM, getStr("messages.hold-item", "&cHold the item you want to add in your main hand."));
-        messages.put(Messages.SHOP_NOT_FOUND, getStr("messages.shop-not-found", "&cCould not find a ShopGUIPlus shop named &f%shop_id%&c."));
-        messages.put(Messages.ITEM_NOT_FOUND, getStr("messages.item-not-found", "&cCould not find the item ID &f%item_id%&c in &f%shop_id%&c."));
-        messages.put(Messages.MATERIAL_NOT_FOUND, getStr("messages.material-not-found", "&cCould not find any ShopGUIPlus item using material &f%material%&c."));
-        messages.put(Messages.MATERIAL_AMBIGUOUS, getStr("messages.material-ambiguous", "&cFound &f%material%&c in multiple shops: &f%matches%&c. Use &f/shopguipluseditor edit <material> <shop>&c."));
-        messages.put(Messages.MATERIAL_AMBIGUOUS_IN_SHOP, getStr("messages.material-ambiguous-in-shop", "&cFound multiple &f%material%&c entries in &f%shop_id%&c: &f%matches%&c. Use &f/shopguipluseditor edit %shop_id%/<item-id>&c."));
-        messages.put(Messages.INVALID_NUMBER, getStr("messages.invalid-number", "&cInvalid number: &f%input%&c."));
-        messages.put(Messages.INVALID_SLOT, getStr("messages.invalid-slot", "&cSlot must be between &f0&c and &f%max_slot%&c for &f%shop_id%&c."));
-        messages.put(Messages.INVALID_PAGE, getStr("messages.invalid-page", "&cPage must be at least &f1&c."));
-        messages.put(Messages.INVALID_ITEM_ID, getStr("messages.invalid-item-id", "&cItem IDs may only contain letters, numbers, hyphens and underscores."));
-        messages.put(Messages.ITEM_ALREADY_EXISTS, getStr("messages.item-already-exists", "&cThe item ID &f%item_id%&c already exists in &f%shop_id%&c."));
-        messages.put(Messages.SLOT_OCCUPIED, getStr("messages.slot-occupied", "&cSlot &f%item_slot%&c on page &f%item_page%&c is already occupied in &f%shop_id%&c."));
-        messages.put(Messages.SAVE_FAILED, getStr("messages.save-failed", "&cFailed to save the ShopGUIPlus shop file."));
-        messages.put(Messages.RELOADED, getStr("messages.reloaded", "&aSuccessfully reloaded the config."));
+        messages.put(Messages.NO_PERMISSION, getComponent("messages.no-permission", "&cYou do not have permission to do that."));
+        messages.put(Messages.PLAYER_ONLY, getComponent("messages.player-only", "&cOnly players can use this command."));
+        messages.put(Messages.SET_PRICES, getComponent("messages.successfully-set", "&aSuccessfully updated the item prices."));
+        messages.put(Messages.ITEM_ADDED, getComponent("messages.item-added", "&aSuccessfully added the item to the shop."));
+        messages.put(Messages.ITEM_REMOVED, getComponent("messages.item-removed", "&aSuccessfully removed the item from the shop."));
+        messages.put(Messages.HOLD_ITEM, getComponent("messages.hold-item", "&cHold the item you want to add in your main hand."));
+        messages.put(Messages.SHOP_NOT_FOUND, getComponent("messages.shop-not-found", "&cCould not find a ShopGUIPlus shop named &f%shop_id%&c."));
+        messages.put(Messages.ITEM_NOT_FOUND, getComponent("messages.item-not-found", "&cCould not find the item ID &f%item_id%&c in &f%shop_id%&c."));
+        messages.put(Messages.MATERIAL_NOT_FOUND, getComponent("messages.material-not-found", "&cCould not find any ShopGUIPlus item using material &f%material%&c."));
+        messages.put(Messages.MATERIAL_AMBIGUOUS, getComponent("messages.material-ambiguous", "&cFound &f%material%&c in multiple shops: &f%matches%&c. Use &f/shopguipluseditor edit <material> <shop>&c."));
+        messages.put(Messages.MATERIAL_AMBIGUOUS_IN_SHOP, getComponent("messages.material-ambiguous-in-shop", "&cFound multiple &f%material%&c entries in &f%shop_id%&c: &f%matches%&c. Use &f/shopguipluseditor edit %shop_id%/<item-id>&c."));
+        messages.put(Messages.INVALID_NUMBER, getComponent("messages.invalid-number", "&cInvalid number: &f%input%&c."));
+        messages.put(Messages.INVALID_SLOT, getComponent("messages.invalid-slot", "&cSlot must be between &f0&c and &f%max_slot%&c for &f%shop_id%&c."));
+        messages.put(Messages.INVALID_PAGE, getComponent("messages.invalid-page", "&cPage must be at least &f1&c."));
+        messages.put(Messages.INVALID_ITEM_ID, getComponent("messages.invalid-item-id", "&cItem IDs may only contain letters, numbers, hyphens and underscores."));
+        messages.put(Messages.ITEM_ALREADY_EXISTS, getComponent("messages.item-already-exists", "&cThe item ID &f%item_id%&c already exists in &f%shop_id%&c."));
+        messages.put(Messages.SLOT_OCCUPIED, getComponent("messages.slot-occupied", "&cSlot &f%item_slot%&c on page &f%item_page%&c is already occupied in &f%shop_id%&c."));
+        messages.put(Messages.SAVE_FAILED, getComponent("messages.save-failed", "&cFailed to save the ShopGUIPlus shop file."));
+        messages.put(Messages.RELOADED, getComponent("messages.reloaded", "&aSuccessfully reloaded the config."));
     }
 
-    public String getPriceEditTitle() {
+    public Component getPriceEditTitle() {
         return this.priceEditTitle;
     }
 
@@ -146,11 +147,11 @@ public class Config {
         return sellAdjustButtons;
     }
 
-    public Map<Messages, String> getMessages() {
+    public Map<Messages, Component> getMessages() {
         return this.messages;
     }
 
-    public List<String> getCommandHelp() {
+    public List<Component> getCommandHelp() {
         return commandHelp;
     }
 
@@ -289,7 +290,7 @@ public class Config {
         return size % 9 == 0 ? size : 54;
     }
 
-    private String getStr(String path, String fallback) {
+    private Component getComponent(String path, String fallback) {
         return Utils.format(cfg.getString(path, fallback));
     }
 

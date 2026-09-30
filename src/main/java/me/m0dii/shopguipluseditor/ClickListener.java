@@ -6,6 +6,7 @@ import net.brcdev.shopgui.ShopGuiPlusApi;
 import net.brcdev.shopgui.inventory.ShopInventoryHolder;
 import net.brcdev.shopgui.shop.Shop;
 import net.brcdev.shopgui.shop.item.ShopItem;
+import net.kyori.adventure.text.Component;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
@@ -38,7 +39,7 @@ public class ClickListener implements Listener {
 
     @EventHandler
     public void onDrag(InventoryDragEvent event) {
-        if (event.getInventory().getHolder() instanceof ShopEditGUI) {
+        if (event.getView().getTopInventory().getHolder() instanceof ShopEditGUI) {
             event.setCancelled(true);
         }
     }
@@ -46,17 +47,23 @@ public class ClickListener implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onClick(InventoryClickEvent event) {
         Inventory clickedInventory = event.getClickedInventory();
+        Inventory topInventory = event.getView().getTopInventory();
+
+        if (topInventory.getHolder() instanceof ShopEditGUI editor) {
+            if (clickedInventory == topInventory) {
+                handleEditorClick(event, editor);
+            } else {
+                event.setCancelled(true);
+            }
+
+            return;
+        }
 
         if (clickedInventory == null) {
             return;
         }
 
         InventoryHolder holder = clickedInventory.getHolder();
-
-        if (holder instanceof ShopEditGUI editor) {
-            handleEditorClick(event, editor);
-            return;
-        }
 
         if (holder instanceof ShopInventoryHolder) {
             handleShopClick(event);
@@ -193,7 +200,8 @@ public class ClickListener implements Listener {
 
         if (!clicker.hasPermission("shopguipluseditor.use")
                 || !(clicker instanceof Player player)
-                || !event.isShiftClick()) {
+                || !event.isShiftClick()
+                || !event.isRightClick()) {
             return;
         }
 
@@ -217,7 +225,7 @@ public class ClickListener implements Listener {
         return inventory != null && inventory.getHolder() instanceof ShopEditGUI;
     }
 
-    private String message(Messages key, ShopEditGUI editor) {
+    private Component message(Messages key, ShopEditGUI editor) {
         return Utils.setPlaceholders(editor, plugin.getCfg().getMessages().get(key));
     }
 }

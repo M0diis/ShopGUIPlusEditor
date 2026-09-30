@@ -4,8 +4,9 @@ import me.m0dii.shopguipluseditor.ShopGUIPlusEditor;
 import org.bukkit.Bukkit;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
+import java.net.URI;
+import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 import java.util.function.Consumer;
 
@@ -19,16 +20,25 @@ public class UpdateChecker {
     }
 
     public void getVersion(final Consumer<String> consumer) {
-        Bukkit.getScheduler().runTaskAsynchronously(this.plugin, () ->
-        {
-            try (InputStream inputStream = new URL("https://api.spigotmc.org/legacy/update.php?resource=" + this.resourceId)
-                    .openStream();
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                URLConnection connection = URI.create(
+                                "https://api.spigotmc.org/legacy/update.php?resource=" + resourceId)
+                        .toURL().openConnection();
+                connection.setConnectTimeout(5_000);
+                connection.setReadTimeout(5_000);
 
-                 Scanner scanner = new Scanner(inputStream)) {
-                if (scanner.hasNext())
-                    consumer.accept(scanner.next());
+                try (Scanner scanner = new Scanner(connection.getInputStream(), StandardCharsets.UTF_8)) {
+                    if (scanner.hasNextLine()) {
+                        String version = scanner.nextLine().trim();
+
+                        if (!version.isEmpty() && plugin.isEnabled()) {
+                            consumer.accept(version);
+                        }
+                    }
+                }
             } catch (IOException ex) {
-                Bukkit.getLogger().info("Failed to check for updates.");
+                plugin.getLogger().fine("Failed to check for updates: " + ex.getMessage());
             }
         });
     }

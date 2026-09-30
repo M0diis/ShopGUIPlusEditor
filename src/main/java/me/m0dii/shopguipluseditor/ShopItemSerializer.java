@@ -1,6 +1,7 @@
 package me.m0dii.shopguipluseditor;
 
 import me.m0dii.shopguipluseditor.utils.Utils;
+import net.kyori.adventure.text.Component;
 import org.bukkit.block.banner.Pattern;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
@@ -26,13 +27,16 @@ public class ShopItemSerializer {
         }
 
         if (meta.hasDisplayName()) {
-            section.set("name", Utils.toConfigString(meta.getDisplayName()));
+            Component displayName = meta.displayName();
+            if (displayName != null) {
+                section.set("name", Utils.toConfigString(displayName));
+            }
         }
 
-        if (meta.hasLore() && meta.getLore() != null) {
+        if (meta.hasLore() && meta.lore() != null) {
             List<String> lore = new ArrayList<>();
 
-            for (String line : meta.getLore()) {
+            for (Component line : meta.lore()) {
                 lore.add(Utils.toConfigString(line));
             }
 

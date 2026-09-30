@@ -1,11 +1,11 @@
 plugins {
     java
-    id("com.gradleup.shadow") version "9.2.2"
-    id("xyz.jpenilla.run-paper") version "2.3.1"
+    id("com.gradleup.shadow") version "9.6.1"
+    id("xyz.jpenilla.run-paper") version "3.1.0"
 }
 
 group = "me.m0dii"
-version = "2.0.0"
+version = "2.1.0"
 
 tasks.shadowJar {
     relocate("org.bstats", "me.m0dii.shopguipluseditor")
@@ -15,7 +15,6 @@ tasks.shadowJar {
 }
 
 repositories {
-    mavenLocal()
     mavenCentral()
 
     flatDir {
@@ -24,18 +23,19 @@ repositories {
 
     listOf(
         "https://jitpack.io",
-        "https://maven.enginehub.org/repo/",
         "https://repo.papermc.io/repository/maven-public/",
-        "https://ci.ender.zone/plugin/repository/everything/",
     ).forEach { repoUrl ->
         maven { url = uri(repoUrl) }
     }
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:26.2.build.129-stable")
+    compileOnly("net.kyori:adventure-text-minimessage:5.2.0")
 
-    compileOnly("com.github.brcdev-minecraft:shopgui-api:3.0.0")
+    compileOnly("com.github.brcdev-minecraft:shopgui-api:3.2.0") {
+        exclude(group = "org.spigotmc", module = "spigot-api")
+    }
     compileOnly(files("libs/ShopGUIPlus-1.113.0.jar"))
 
     implementation("org.bstats:bstats-bukkit:2.2.1")
@@ -52,7 +52,10 @@ val doFirstEula: Task.() -> Unit = {
 tasks {
     runServer {
         runDirectory(file("run/latest"))
-        minecraftVersion("1.21.11")
+        minecraftVersion("26.2")
+        javaLauncher = project.javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(25)
+        }
 
         downloadPlugins {
             modrinth("essentialsx", "2.21.2")
@@ -67,9 +70,8 @@ tasks {
     }
 }
 
-
 java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+    toolchain.languageVersion.set(JavaLanguageVersion.of(25))
 }
 
 tasks.withType<JavaCompile> {
