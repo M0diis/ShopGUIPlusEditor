@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "me.m0dii"
-version = "2.1.0"
+version = "2.1.1"
 
 tasks.shadowJar {
     relocate("org.bstats", "me.m0dii.shopguipluseditor")

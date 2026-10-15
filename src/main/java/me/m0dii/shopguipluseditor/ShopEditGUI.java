@@ -14,8 +14,11 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.jspecify.annotations.NonNull;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public class ShopEditGUI implements InventoryHolder {
     public static final String ACTION_ADJUST_BUY = "adjust-buy";
@@ -136,7 +139,7 @@ public class ShopEditGUI implements InventoryHolder {
     }
 
     @Override
-    public Inventory getInventory() {
+    public @NonNull Inventory getInventory() {
         return inv;
     }
 
@@ -216,7 +219,9 @@ public class ShopEditGUI implements InventoryHolder {
         }
 
         if (meta.hasLore() && meta.lore() != null) {
-            List<Component> renderedLore = meta.lore().stream()
+            List<Component> renderedLore = Optional.ofNullable(meta.lore())
+                    .orElse(Collections.emptyList())
+                    .stream()
                     .map(line -> Utils.setPlaceholders(this, line, adjustmentReplacements(adjustButton)))
                     .toList();
             meta.lore(renderedLore);

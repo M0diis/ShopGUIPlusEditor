@@ -6,13 +6,19 @@ import net.brcdev.shopgui.shop.Shop;
 import net.brcdev.shopgui.shop.item.ShopItem;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 public class ShopFileService {
@@ -24,7 +30,7 @@ public class ShopFileService {
 
     public ShopFileService(ShopGUIPlusEditor plugin) {
         this.plugin = plugin;
-        this.serializer = new ShopItemSerializer();
+        this.serializer = new ShopItemSerializer(plugin.getLogger()::warning);
         this.shopsDirectory = new File(plugin.getDataFolder().getParentFile(), "ShopGUIPlus" + File.separator + "shops");
     }
 
@@ -226,14 +232,45 @@ public class ShopFileService {
 
     private SaveResult saveAndReload(String shopId, FileConfiguration cfg) {
         File file = getShopFile(shopId);
+        Path target = file.toPath();
+        Path temporaryFile = null;
 
         try {
-            cfg.save(file);
-            reloadShops();
+            Path backup = target.resolveSibling(file.getName() + ".bak");
+            Files.copy(target, backup, StandardCopyOption.REPLACE_EXISTING);
+
+            temporaryFile = Files.createTempFile(target.getParent(), file.getName() + ".", ".tmp");
+            cfg.save(temporaryFile.toFile());
+
+            try {
+                Files.move(temporaryFile, target, StandardCopyOption.REPLACE_EXISTING,
+                        StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException ignored) {
+                Files.move(temporaryFile, target, StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            try {
+                reloadShops();
+            } catch (RuntimeException ex) {
+                plugin.getLogger().log(Level.SEVERE,
+                        "Saved shop configuration, but ShopGUIPlus failed to reload it: " + file.getAbsolutePath(), ex);
+            }
+
             return SaveResult.saved();
         } catch (IOException ex) {
-            plugin.getLogger().severe("Failed to save shop configuration file: " + file.getAbsolutePath());
+            plugin.getLogger().log(Level.SEVERE,
+                    "Failed to save shop configuration file (the original was left in place): "
+                            + file.getAbsolutePath(), ex);
             return SaveResult.failed();
+        } finally {
+            if (temporaryFile != null) {
+                try {
+                    Files.deleteIfExists(temporaryFile);
+                } catch (IOException ex) {
+                    plugin.getLogger().log(Level.WARNING,
+                            "Failed to remove temporary shop configuration file: " + temporaryFile, ex);
+                }
+            }
         }
     }
 
@@ -258,7 +295,17 @@ public class ShopFileService {
             return null;
         }
 
-        return YamlConfiguration.loadConfiguration(file);
+        YamlConfiguration config = new YamlConfiguration();
+        config.options().parseComments(true);
+
+        try {
+            config.load(file);
+            return config;
+        } catch (IOException | InvalidConfigurationException ex) {
+            plugin.getLogger().log(Level.SEVERE,
+                    "Refusing to modify invalid or unreadable shop configuration: " + file.getAbsolutePath(), ex);
+            return null;
+        }
     }
 
     private File getShopFile(String shopId) {

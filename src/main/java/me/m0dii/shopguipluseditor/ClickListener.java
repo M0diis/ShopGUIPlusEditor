@@ -75,12 +75,17 @@ public class ClickListener implements Listener {
 
         HumanEntity clicker = event.getWhoClicked();
 
-        if (!clicker.hasPermission("shopguipluseditor.use")) {
-            clicker.sendMessage(message(Messages.NO_PERMISSION, editor));
+        if (!(clicker instanceof Player player)) {
             return;
         }
 
-        if (!(clicker instanceof Player player)) {
+        boolean hasEditorPermission = editor.isCreateMode()
+                ? player.hasPermission("shopguipluseditor.command.add")
+                : player.hasPermission("shopguipluseditor.use")
+                        || player.hasPermission("shopguipluseditor.command.edit");
+
+        if (!hasEditorPermission) {
+            clicker.sendMessage(message(Messages.NO_PERMISSION, editor));
             return;
         }
 
