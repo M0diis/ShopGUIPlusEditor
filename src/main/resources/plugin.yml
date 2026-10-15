@@ -1,7 +1,7 @@
 name: ShopGUIPlusEditor
 main: me.m0dii.shopguipluseditor.ShopGUIPlusEditor
 description: ShopGUIPlus editor with price, add, and remove tooling.
-version: 2.1.0
+version: 2.1.1
 api-version: "26.2"
 author: M0dii
 depend: [ShopGUIPlus]
